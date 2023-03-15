@@ -23,12 +23,6 @@ dm<-length(ts)
 ncensor<-400-133
 censor<-rep(warr,ncensor)
 
-# inds<-(ts+lags<=3.5)
-# ts<-ts[inds]
-# lags<-lags[inds]
-# ncensor<-ss0-length(ts)
-# censor<-rep(3.5,ncensor)
-
 emcore<-function(y,pips,nups,p0ps,mups,Rmax,
                  y1,pi1ps,nu1ps,p1ps,mu1ps,censor,ncensor,CRmax){
   ###for lags date
@@ -291,25 +285,6 @@ observed_loglike<-function(mypara){
   return(-my_res)
 }
 
-equality_constraint<-function(mypara){
-  return(c(sum(mypara[1:m1]),sum(mypara[(2*m1+1):(2*m1+m2)]))) 
-}
-
-inequality_constraint<-function(mypara){
-  if((m1==1)&(m2>1)){
-    return(c(mypara[(m1+1):(2*m1)]-0,mypara[(2*m1+m2+1):(2*m1+2*m2)]-c(0,mypara[(2*m1+m2+1):(2*m1+2*m2-1)]))) 
-  }
-  if((m2==1)&(m1>1)){
-    return(c(mypara[(m1+1):(2*m1)]-c(0,mypara[(m1+1):(2*m1-1)]),mypara[(2*m1+m2+1):(2*m1+2*m2)]-0)) 
-  }
-  if((m1==1)&(m2==1)){
-    return(c(mypara[(m1+1):(2*m1)]-0,mypara[(2*m1+m2+1):(2*m1+2*m2)]-0)) 
-  }
-  if((m1>1)&(m2>1)){
-    return(c(mypara[(m1+1):(2*m1)]-c(0,mypara[(m1+1):(2*m1-1)]),mypara[(2*m1+m2+1):(2*m1+2*m2)]-c(0,mypara[(2*m1+m2+1):(2*m1+2*m2-1)]))) 
-  }
-}
-
 mixture_Erlang<-function(mypara){
   pips<-rep(1/m1,m1)
   pi1ps<-rep(1/m2,m2)
@@ -347,44 +322,6 @@ mixture_Erlang<-function(mypara){
   return(-my_res)
 }
 
-observed_loglike1<-function(mypara){
-  if(m1>1){
-    pips<-c(mypara[1:(m1-1)],1-sum(mypara[1:(m1-1)]))
-    p0ps<-diag(mypara[(m1):(2*m1-1)])*(-1)
-    for(i in 1:(m1-1)){
-      p0ps[i,i+1]<-p0ps[i,i]*(-1)
-    }
-  }else{
-    pips<-1
-    p0ps<-matrix((mypara[1])*(-1))
-  }
-  nups<-apply(p0ps,MARGIN = 1,sum)*(-1)
-  
-  if(m2>1){
-    pi1ps<-c(mypara[(2*m1):(2*m1+m2-2)],1-sum(mypara[(2*m1):(2*m1+m2-2)]))
-    p1ps<-diag(mypara[(2*m1+m2-1):(2*m1+2*m2-2)])*(-1)
-    for(i in 1:(m2-1)){
-      p1ps[i,i+1]<-p1ps[i,i]*(-1)
-    }
-  }else{
-    pi1ps<-1
-    p1ps<-matrix((mypara[2*m1])*(-1))
-  }
-  nu1ps<-apply(p1ps,MARGIN = 1,sum)*(-1)
-  
-  apl1<-pips
-  apl2<-pi1ps
-  y1<-lags
-  y2<-ts
-  es=rep(1,m1+m2)
-  D0=cbind(rbind(p0ps,matrix(0,m2,m1)),rbind(nups%*%t(apl2),p1ps))
-  mysum<-0
-  for(i in 1:ncensor){
-    mysum<-mysum+log(sum(c(apl1,rep(0,m2))*expAtv(D0,es,censor[i])$eAtv))
-  }
-  my_res<-sum(dph(y1,ph=ph(alpha=apl1,Q=p0ps,xi=nups),log=T))+sum(dph(y2,ph=ph(alpha=apl2,Q=p1ps,xi=nu1ps),log=T))+mysum
-  return(-my_res)
-}
 
 
 m1<-4
