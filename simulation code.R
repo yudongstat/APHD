@@ -578,7 +578,7 @@ simulation<-function(iter){
     
     maximum_order<-8
     
-    CV_array<-array(0,dim = c(maximum_order,maximum_order,5))
+    CV_array<-array(-Inf,dim = c(maximum_order,maximum_order,5))
     
     ptm<-proc.time()
     for(fold in 1:5){
@@ -607,8 +607,8 @@ simulation<-function(iter){
           test_ncensor<-test_ncensor+1
         }
       }
-      for(m1 in 1:maximum_order){
-        for(m2 in 1:maximum_order){
+      for(m1 in 2:maximum_order){
+        for(m2 in 2:maximum_order){
           pips<-rep(1/m1,m1)
           pi1ps<-rep(1/m2,m2)
           ###################use the SEM algorithm to select initial value
