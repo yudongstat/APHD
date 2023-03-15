@@ -12,7 +12,7 @@ set.seed(2023)
 lags<-rweibull(sample_size,shape = weib_par[1],scale = weib_par[2])###generate sales lags
 set.seed(2023)
 ts<-rllog(sample_size,shape = 1/llogis_par[1],scale = log(llogis_par[2]))###generate product lifetime
-ids<-which((lags+ts<censor)&(ts<warr))###identify those products which will be returned as warranty claims
+ids<-which((lags+ts<censor)&(ts<warr))###identify those products which are returned as warranty claims
 lags<-lags[ids]###only keep the lags of those returned products
 ts<-ts[ids]###only keep the lifetimes of those returned products
 ncensor<-sample_size-length(ts)###number of unreturned products
