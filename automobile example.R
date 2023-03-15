@@ -21,64 +21,6 @@ ss0<-589
 ncensor<-ss0-length(ts)
 
 
-
-observed_loglike<-function(mypara){
-  pips<-mypara[1:m1]
-  if(m1>1){
-    p0ps<-diag(mypara[(m1+1):(2*m1)])*(-1)
-    for(i in 1:(m1-1)){
-      p0ps[i,i+1]<-p0ps[i,i]*(-1)
-    }
-  }else{
-    p0ps<-matrix((mypara[(m1+1):(2*m1)])*(-1)) 
-  }
-  
-  nups<-apply(p0ps,MARGIN = 1,sum)*(-1)
-  pi1ps<-mypara[(2*m1+1):(2*m1+m2)]
-  
-  if(m2>1){
-    p1ps<-diag(mypara[(2*m1+m2+1):(2*m1+2*m2)])*(-1)
-    for(i in 1:(m2-1)){
-      p1ps[i,i+1]<-p1ps[i,i]*(-1)
-    }
-  }else{
-    p1ps<-matrix((mypara[(2*m1+m2+1):(2*m1+2*m2)])*(-1))
-  }
-  
-  nu1ps<-apply(p1ps,MARGIN = 1,sum)*(-1)
-  y1<-ts
-  y2<-lags
-  es=rep(1,m1+m2)
-  D0=cbind(rbind(p0ps,matrix(0,m2,m1)),rbind(nups%*%t(pi1ps),p1ps))
-  mm1<-m1+m2
-  prob<-sum(c(pips,rep(0,m2))*expAtv(D0,es,warr)$eAtv)
-  tempmat<-diag(mm1)
-  for(k in (m1+1):mm1){
-    prob<-prob-sum(c(pips,rep(0,m2))*expAtv(D0,tempmat[k,],warr)$eAtv)*(1-sum(tempmat[k,]*expAtv(D0,es,censor-warr)$eAtv))
-  }
-  res<-sum(dph(y1,ph=ph(alpha=pips,Q=p0ps,xi=nups),log=T))+sum(dph(y2,ph=ph(alpha=pi1ps,Q=p1ps,xi=nu1ps),log=T))+ncensor*log(prob)
-  return(-res)
-}
-
-equality_constraint<-function(mypara){
-  return(c(sum(mypara[1:m1]),sum(mypara[(2*m1+1):(2*m1+m2)]))) 
-}
-
-inequality_constraint<-function(mypara){
-  if((m1==1)&(m2>1)){
-    return(c(mypara[(m1+1):(2*m1)]-0,mypara[(2*m1+m2+1):(2*m1+2*m2)]-c(0,mypara[(2*m1+m2+1):(2*m1+2*m2-1)]))) 
-  }
-  if((m2==1)&(m1>1)){
-    return(c(mypara[(m1+1):(2*m1)]-c(0,mypara[(m1+1):(2*m1-1)]),mypara[(2*m1+m2+1):(2*m1+2*m2)]-0)) 
-  }
-  if((m1==1)&(m2==1)){
-    return(c(mypara[(m1+1):(2*m1)]-0,mypara[(2*m1+m2+1):(2*m1+2*m2)]-0)) 
-  }
-  if((m1>1)&(m2>1)){
-    return(c(mypara[(m1+1):(2*m1)]-c(0,mypara[(m1+1):(2*m1-1)]),mypara[(2*m1+m2+1):(2*m1+2*m2)]-c(0,mypara[(2*m1+m2+1):(2*m1+2*m2-1)]))) 
-  }
-}
-
 mixture_Erlang<-function(mypara){
   pips<-rep(1/m1,m1)
   pi1ps<-rep(1/m2,m2)
@@ -465,48 +407,6 @@ loglike<-function(pips,pi1ps,p0ps,p1ps,nups,nu1ps,y1,y2,warr,censor,ncensor){
            sum(dph(y2,ph=ph(alpha=pi1ps,Q=p1ps,xi=nu1ps),log=T))+ncensor*log(q2))
 }
 
-observed_loglike1<-function(mypara){
-  if(m1>1){
-    pips<-c(mypara[1:(m1-1)],1-sum(mypara[1:(m1-1)]))
-    p0ps<-diag(mypara[(m1):(2*m1-1)])*(-1)
-    for(i in 1:(m1-1)){
-      p0ps[i,i+1]<-p0ps[i,i]*(-1)
-    }
-  }else{
-    pips<-1
-    p0ps<-matrix((mypara[1])*(-1))
-  }
-  nups<-apply(p0ps,MARGIN = 1,sum)*(-1)
-  
-  if(m2>1){
-    pi1ps<-c(mypara[(2*m1):(2*m1+m2-2)],1-sum(mypara[(2*m1):(2*m1+m2-2)]))
-    p1ps<-diag(mypara[(2*m1+m2-1):(2*m1+2*m2-2)])*(-1)
-    for(i in 1:(m2-1)){
-      p1ps[i,i+1]<-p1ps[i,i]*(-1)
-    }
-  }else{
-    pi1ps<-1
-    p1ps<-matrix((mypara[2*m1])*(-1))
-  }
-  nu1ps<-apply(p1ps,MARGIN = 1,sum)*(-1)
-  y1<-ts
-  y2<-lags
-  
-  es=rep(1,m1+m2)
-  D0=cbind(rbind(p0ps,matrix(0,m2,m1)),rbind(nups%*%t(pi1ps),p1ps))
-  mm1<-m1+m2
-  prob<-sum(c(pips,rep(0,m2))*expAtv(D0,es,warr)$eAtv)
-  tempmat<-diag(mm1)
-  for(k in (m1+1):mm1){
-    prob<-prob-sum(c(pips,rep(0,m2))*expAtv(D0,tempmat[k,],warr)$eAtv)*(1-sum(tempmat[k,]*expAtv(D0,es,censor-warr)$eAtv))
-  }
-  res<-sum(dph(y1,ph=ph(alpha=pips,Q=p0ps,xi=nups),log=T))+sum(dph(y2,ph=ph(alpha=pi1ps,Q=p1ps,xi=nu1ps),log=T))+ncensor*log(prob)
-  return(-res)
-}
-
-numerical_grad<-function(mypara){
-  grad(f=observed_loglike1,x0=mypara)
-}
 m1<-4
 m2<-5
 
